@@ -1,5 +1,5 @@
 #/bin/bash
-curl --location --request POST 'https://vvdev.ru/api/img' \
+curl --location --request POST 'http://localhost:5000/api/img' \
 --header 'Content-Type: application/json' \
 --data-raw '{
   "id": "1",

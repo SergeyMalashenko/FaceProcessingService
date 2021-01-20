@@ -21,7 +21,7 @@ from skimage.draw      import rectangle, rectangle_perimeter
 from skimage.io        import imsave
 from simplejpeg        import decode_jpeg
 
-from faceProcessingCommon import FaceDetectionModel, FaceRecognitionModel
+from faceProcessingService_common import FaceDetectionModel, FaceRecognitionModel
 
 from flask      import Flask, request, jsonify
 app = Flask(__name__)

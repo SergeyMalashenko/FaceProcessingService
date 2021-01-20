@@ -62,6 +62,7 @@ class FaceRecognitionModel( object ):
         embedding_s = self.model.blobs[field]
         return np.copy( embedding_s.data )
 
+
 def load_data_from_pickle(name ):
     with open( name , 'rb') as f:
         return pickle.load(f)

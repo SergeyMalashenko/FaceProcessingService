@@ -63,10 +63,13 @@ def processImage( source_image, verbose ):
             nn_model    = face_embedding_s_packet['nn_model'   ]
             
             face_embedding_s = pca_model.transform( face_embedding_s )
-            distance_s, index_s = nn_model.kneighbors( face_embedding_s )
-            result_key_s = [ dict_keys[i] for i in index_s]
-
-            return dictance_s, result_key_s
+            distance_s_s, index_s_s = nn_model.kneighbors( face_embedding_s )
+            
+            key_s_s = list()
+            for index_s in index_s_s:
+                key_s_s.append( [ dict_keys[i] for i in index_s] )
+            
+            return distance_s_s, key_s_s
         else:
             print(x_min, x_max, y_min, y_max)
         if verbose :
@@ -120,9 +123,9 @@ def upload():
 if __name__ == '__main__':
     detection_prototxt, detection_caffemodel, recognition_prototxt, recognition_caffemodel, embeddings_data_file, field, alpha, gpu_id, output, verbose = parseParameters()
     
-    #caffe.set_mode_cpu()
-    caffe.set_mode_gpu()
-    caffe.set_device( gpu_id )
+    caffe.set_mode_cpu()
+    #caffe.set_mode_gpu()
+    #caffe.set_device( gpu_id )
     
     detectionModel   = FaceDetectionModel  ( detection_prototxt  , detection_caffemodel   ) 
     print("Loading face detection model ... completed")

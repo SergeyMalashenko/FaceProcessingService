@@ -14,6 +14,11 @@ os.environ['GLOG_minloglevel'] = '2'
 
 import caffe
 
+from sklearn.neighbors     import NearestNeighbors
+from sklearn.decomposition import PCA
+
+from numpy.linalg          import norm
+
 from base64            import b64decode
 from skimage           import color
 from skimage.transform import resize
@@ -21,13 +26,15 @@ from skimage.draw      import rectangle, rectangle_perimeter
 from skimage.io        import imsave
 from simplejpeg        import decode_jpeg
 
-from faceProcessingService_common import FaceDetectionModel, FaceRecognitionModel
+from faceProcessingService_common import FaceDetectionModel, FaceRecognitionModel, load_data
 
 from flask      import Flask, request, jsonify
 app = Flask(__name__)
 
-detectionModel   = None
-recognitionModel = None
+detectionModel          = None
+recognitionModel        = None
+face_embedding_s_packet = None
+
 verbose          = False
 
 def processImage( source_image, verbose ):
@@ -47,8 +54,19 @@ def processImage( source_image, verbose ):
         
         if (0 <= x_min ) and (x_max < source_width) and (0 <= y_min ) and (y_max < source_height) :
             face_image_s     = source_image[np.newaxis,(y_min+0):(y_max+1), (x_min+0):(x_max+1),:]
-            face_embedding_s = recognitionModel( face_image_s, field )
-            print(face_embedding_s)
+            face_embedding_s  = recognitionModel( face_image_s, field )
+            face_embedding_s /= norm(face_embedding_s, axis=1)
+            
+            dict_values = face_embedding_s_packet['dict_values']
+            dict_keys   = face_embedding_s_packet['dict_keys'  ]
+            pca_model   = face_embedding_s_packet['pca_model'  ]
+            nn_model    = face_embedding_s_packet['nn_model'   ]
+            
+            face_embedding_s = pca_model.transform( face_embedding_s )
+            distance_s, index_s = nn_model.kneighbors( face_embedding_s )
+            result_key_s = [ dict_keys[i] for i in index_s]
+
+            return dictance_s, result_key_s
         else:
             print(x_min, x_max, y_min, y_max)
         if verbose :
@@ -110,7 +128,7 @@ if __name__ == '__main__':
     print("Loading face detection model ... completed")
     recognitionModel = FaceRecognitionModel( recognition_prototxt, recognition_caffemodel ) 
     print("Loading face recognition model ... completed")
-    #reference_embedding_s_dict = load_data_from_pickle( embeddings_data_file )
+    face_embedding_s_packet = load_data( 'temporary.pkl' )
     print("Loading preprocessed face embeddings ... completed")
     
     app.run(host='0.0.0.0',port=5000)

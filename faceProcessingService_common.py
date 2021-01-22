@@ -63,6 +63,12 @@ class FaceRecognitionModel( object ):
         return np.copy( embedding_s.data )
 
 
-def load_data_from_pickle(name ):
+def save_data(obj, name ):
+    with open( name, 'wb') as f:
+        pickle.dump(obj, f)
+
+def load_data(name ):
     with open( name , 'rb') as f:
         return pickle.load(f)
+
+

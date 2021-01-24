@@ -42,6 +42,8 @@ def processImage( source_image, verbose ):
     
     detection_s = detectionModel( source_image[np.newaxis,:,:,:] )[0]
     #Process detected faces
+    distance_s_s = list()
+    key_s_s = list()
     for detection in detection_s:
         x_min, y_min, x_max, y_max = detection[2], detection[3], detection[4], detection[5]
         x_center, y_center = (x_min + x_max)*  0.5*source_width, (y_min + y_max)*  0.5*source_height
@@ -63,20 +65,22 @@ def processImage( source_image, verbose ):
             nn_model    = face_embedding_s_packet['nn_model'   ]
             
             face_embedding_s = pca_model.transform( face_embedding_s )
-            distance_s, index_s = nn_model.kneighbors( face_embedding_s )
-            result_key_s = [ dict_keys[i] for i in index_s]
-
-            return dictance_s, result_key_s
+            distance_s_numpy, index_s_numpy = nn_model.kneighbors( face_embedding_s )
+            distance_s_list , index_s_list  = distance_s_numpy[0].tolist(), index_s_numpy[0].tolist()
+            key_s_list = [ dict_keys[i] for i in index_s_list]
+            
+            distance_s_s.append(distance_s_list)
+            key_s_s     .append(key_s_list     )
         else:
             print(x_min, x_max, y_min, y_max)
-        if verbose :
-            start=(y_min,x_min)
-            end  =(y_max,x_max)
-            rr, cc = rectangle_perimeter(start=start, end=end, shape=(source_height,source_width))
-            
-            source_image[rr,cc,:] = 255
-            imsave(os.path.join("output","temp.jpg"), source_image)
-    return None
+        #if verbose :
+        #    start=(y_min,x_min)
+        #    end  =(y_max,x_max)
+        #    rr, cc = rectangle_perimeter(start=start, end=end, shape=(source_height,source_width))
+        #    
+        #    source_image[rr,cc,:] = 255
+        #    imsave(os.path.join("output","temp.jpg"), source_image)
+    return distance_s_s, key_s_s
 
 
 
@@ -113,9 +117,9 @@ def upload():
     #with open(image_id+".png","wb") as f:
     #    f.write(b64decode(image))
     source_image = decode_jpeg( b64decode(encoded_image) )
-    processImage( source_image, verbose )
-
-    return jsonify({'result':'ok'})
+    distance_s_s, key_s_s = processImage( source_image, verbose )
+    
+    return jsonify({'distance_s':distance_s_s,'key_s':key_s_s})
 
 if __name__ == '__main__':
     detection_prototxt, detection_caffemodel, recognition_prototxt, recognition_caffemodel, embeddings_data_file, field, alpha, gpu_id, output, verbose = parseParameters()

@@ -124,9 +124,9 @@ def upload():
 if __name__ == '__main__':
     detection_prototxt, detection_caffemodel, recognition_prototxt, recognition_caffemodel, embeddings_data_file, field, alpha, gpu_id, output, verbose = parseParameters()
     
-    caffe.set_mode_cpu()
-    #caffe.set_mode_gpu()
-    #caffe.set_device( gpu_id )
+    #caffe.set_mode_cpu()
+    caffe.set_mode_gpu()
+    caffe.set_device( gpu_id )
     
     detectionModel   = FaceDetectionModel  ( detection_prototxt  , detection_caffemodel   ) 
     print("Loading face detection model ... completed")

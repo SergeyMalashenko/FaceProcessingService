@@ -24,10 +24,22 @@ recognitionModel = None
 
 class FaceDetectionModel( object ):
     def __init__(self, proto_filename, weight_filename ):
-        self.model        = caffe.Net( proto_filename, weight_filename, caffe.TEST )
+        self.model    = caffe.Net( proto_filename, weight_filename, caffe.TEST )
+        self.max_size = (720, 1280)
     def __call__( self, source_image_s ):
         batch, height, width, depth = source_image_s.shape
+        max_height, max_width = self.max_size
         
+        alpha = min( max_height/float(height), max_width/float(width) )
+        
+        processed_image_s = np.zeros( (batch, int(np.round(height*alpha)), int(np.round(width*alpha)), depth) )    
+        source_image_s = source_image_s.astype(np.float)/255
+        for i in range(batch):
+            processed_image_s[i] = resize(source_image_s[i], (int(np.round(height*alpha)), int(np.round(width*alpha))), order=1)
+         
+        processed_image_s = np.transpose( processed_image_s, axes=(0,3,1,2) )
+        processed_image_s = processed_image_s[:,[2,1,0],:,:]
+        '''
         source_image_s = np.transpose( source_image_s, axes=(0,3,1,2) )
         source_image_s = source_image_s[:,[2,1,0],:,:]
         source_image_s = source_image_s.astype(np.float)/255
@@ -35,9 +47,17 @@ class FaceDetectionModel( object ):
         self.model.blobs['data'].reshape( *source_image_s.shape )
         self.model.blobs['data'].data[...] = source_image_s
         self.model.forward()
+        '''
+        self.model.blobs['data'].reshape( *processed_image_s.shape )
+        self.model.blobs['data'].data[...] = processed_image_s
+        
+        self.model.reshape()
+        self.model.forward()
         
         detection_s_numpy = self.model.blobs['detection_s'].data[...]
         size_s_numpy      = self.model.blobs['size_s'     ].data[...]
+        
+        print( detection_s_numpy )
         
         detection_s_list = [None]*batch
         for i in range( batch ):

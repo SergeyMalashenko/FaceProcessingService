@@ -18,7 +18,7 @@ from skimage.transform import resize
 from skimage.draw      import rectangle_perimeter
 from skimage.io        import imsave
 
-from faceProcessingCommon import FaceDetectionModel, FaceRecognitionModel
+from faceProcessingService_common import FaceDetectionModel, FaceRecognitionModel
 
 detectionModel = None
 recognitionModel = None
